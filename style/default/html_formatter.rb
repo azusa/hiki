@@ -1,3 +1,4 @@
+# encoding: UTF-8
 # $Id: html_formatter.rb,v 1.62 2008-01-06 05:49:30 znz Exp $
 # Copyright (C) 2002-2003 TAKEUCHI Hitoshi <hitoshi@namaraii.com>
 
@@ -117,10 +118,14 @@ module Hiki
     URI_RE = /\A#{URI.regexp( %w( http https ftp file mailto ) )}\z/
 
     def replace_link( text )
+     
+      text.force_encoding("UTF-8") 
       text.gsub( %r|<a href="(.+?)">(.+?)</a>| ) do |str|
         k, u = $2, $1
+        
+        ret = nil
         if URI_RE =~ u # uri
-          @plugin.make_anchor(u, k, 'external')
+          ret = @plugin.make_anchor(u, k, 'external')
         else
           u = unescape_html(u)
           u = @aliaswiki.aliaswiki_names.key( u ) || u # alias wiki
@@ -133,30 +138,37 @@ module Hiki
             k = @plugin.page_name( k ) if k == u
             @references << u
             if u.empty?
-              @plugin.make_anchor( anchor, k )
+              ret = @plugin.make_anchor( anchor, k )
             else
-              @plugin.hiki_anchor( escape(u) + anchor, k )
+              ret = @plugin.hiki_anchor( escape(u) + anchor, k )
             end
           elsif orig = @db.select{|i| i[:title] == u}.first # page title
             k = @plugin.page_name( k ) if k == u
             u = orig
             @references << u
-            @plugin.hiki_anchor( escape(u) + anchor, k )
+            ret = @plugin.hiki_anchor( escape(u) + anchor, k )
           elsif outer_alias = @interwiki.outer_alias( u ) # outer alias
-            @plugin.make_anchor(outer_alias[0] + anchor, k, 'external')
+            ret = @plugin.make_anchor(outer_alias[0] + anchor, k, 'external')
           elsif /:/ =~ u # inter wiki ?
             s, p = u.split( /:/, 2 )
             if s.empty? # normal link
-              @plugin.make_anchor( h(p) + anchor, k, 'external')
+              ret = @plugin.make_anchor( h(p) + anchor, k, 'external')
             elsif inter_link = @interwiki.interwiki( s, unescape_html(p), "#{s}:#{p}" )
-              @plugin.make_anchor(inter_link[0], k, 'external')
+              ret = @plugin.make_anchor(inter_link[0], k, 'external')
             else
-              missing_page_anchor( k, u )
+              ret = missing_page_anchor( k, u )
             end
           else
-            missing_page_anchor( k, u )
+            ret = missing_page_anchor( k, u )
           end
         end
+        if ret.encoding !=  Encoding::UTF_8
+
+          STDERR.puts @plugin.to_s
+          ret.force_encoding "UTF-8"
+          ret.encode! "UTF-8" , "UTF-8"
+        end 
+        ret
       end
     end
 
@@ -211,6 +223,7 @@ module Hiki
     def replace_plugin( text )
       text.gsub( %r!<(span|div) class="plugin">\{\{(.+?)\}\}</\1>!m ) do |str|
         tag, plugin_str = $1, $2
+
         begin
           case tag
           when 'span'
@@ -218,7 +231,11 @@ module Hiki
           when 'div'
             result = @plugin.block_context{ apply_plugin( plugin_str, @plugin, @conf ) }
           end
-          result.class == String ? result : ''
+          ret = result.class == String ? result : ''
+          if ret.encoding !=  Encoding::UTF_8
+            ret.force_encoding "UTF-8"
+            ret.encode! "UTF-8" , "UTF-8"
+          end
         rescue Exception => e
           $& + e.message
         end

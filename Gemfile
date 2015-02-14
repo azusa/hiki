@@ -8,7 +8,7 @@ gem 'docdiff'
 gem 'hikidoc'
 
 gem 'sequel'
-gem 'mysql2'
+#gem 'mysql2'
 
 group :development do
   gem 'pry'

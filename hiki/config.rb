@@ -202,6 +202,8 @@ module Hiki
       @generator       ||= "Hiki #{Hiki::VERSION}"
       @timeout         ||= 30
 
+      STDERR.puts @data_path
+      STDERR.puts @cache_path
       Dir.mkdir(@cache_path) unless File.directory?(@cache_path)
 
       # following variables are not configurable.

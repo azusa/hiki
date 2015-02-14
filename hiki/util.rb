@@ -57,7 +57,7 @@ class String
 
   unless method_defined?(:b)
     def b
-      dup.force_encoding(Encoding::ASCII_8BIT)
+      dup.force_encoding(Encoding::UTF_8)
     end
   end
 end
@@ -84,15 +84,23 @@ module Hiki
     #   string = unescape("%27Stop%21%27+said+Fred")
     #      # => "'Stop!' said Fred"
     def unescape(string)
-      CGI.unescape(string)
+      ret = CGI.unescape(string)
+      ret
     end
 
     # Escape special characters in HTML, namely &\"<>
     #   escapeHTML('Usage: foo "bar" <baz>')
     #      # => "Usage: foo &quot;bar&quot; &lt;baz&gt;"
     def escapeHTML(string)
-      CGI.escapeHTML(string)
-    end
+      ret = CGI.escapeHTML(string)
+      STDERR.puts ret.encoding
+      if ret.encoding != Encoding::UTF_8
+        ret.force_encoding "UTF-8"
+        ret.encode! "UTF-8", "UTF-8"
+      end
+      ret 
+
+   end
 
     # Unescape a string that has been HTML-escaped
     #   unescapeHTML("Usage: foo &quot;bar&quot; &lt;baz&gt;")

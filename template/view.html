@@ -1,7 +1,7 @@
 <a name="top"> </a>
 <div class="<%= @contents[:view_style] %>">
   <div class="adminmenu"><%= @contents[:tools] %></div>
-  <h1 class="header"><%= @contents[:view_title] %></h1>
+  <h1 class="header"><%= @contents[:view_title].force_encoding "UTF-8"  %></h1>
   <% if !@contents[:body_enter].empty? %><div><%= @contents[:body_enter] %></div><% end %>
   <div><%= @contents[:body] %></div>
   <div class="day">

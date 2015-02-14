@@ -9,7 +9,9 @@
 <body>
 <div class="whole-contents">
   <div class="contents">
-    <%= yield %>
+    
+<% STDERR.puts yield.encoding %>
+<%= yield %>
   </div>
   <div class="footer"><%= @contents[:footer] %></div>
 </div>
